@@ -1,14 +1,13 @@
 import html
 import re
-from pathlib import Path
 from aiogram import Router, F, Bot
-from aiogram.types import Message, CallbackQuery, FSInputFile, URLInputFile, InlineKeyboardMarkup, InlineKeyboardButton
-from aiogram.filters import CommandStart, Command
+from aiogram.types import Message, CallbackQuery, FSInputFile, InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram.filters import CommandStart
 from aiogram.fsm.context import FSMContext
 
 from bot.database import (
     add_user, get_games_by_category, get_game_by_id, 
-    search_games, get_random_game, increment_download, get_channels,
+    search_games, get_random_game, increment_download,
     update_game_apk
 )
 from bot.keyboards.default import get_main_keyboard, get_cancel_keyboard
@@ -134,12 +133,12 @@ async def callback_back_to_categories(callback: CallbackQuery):
 
 @router.callback_query(F.data.startswith("cat_"))
 async def callback_category_selected(callback: CallbackQuery):
-    category = callback.data.replace("cat_", "", 1)
+    category = (callback.data or "").replace("cat_", "", 1)
     games = await get_games_by_category(category)
     cat_title = CATEGORIES.get(category, category.title())
 
     if not games:
-        await callback.answer(f"Bu toifada hozircha o'yinlar mavjud emas.", show_alert=True)
+        await callback.answer("Bu toifada hozircha o'yinlar mavjud emas.", show_alert=True)
         return
 
     text = f"📂 <b>{cat_title}</b> toifasidagi o'yinlar:\nKerakli o'yinni tanlang:"
@@ -159,12 +158,13 @@ async def callback_noop(callback: CallbackQuery):
 
 @router.callback_query(F.data.startswith("page:") | F.data.startswith("page_"))
 async def callback_pagination(callback: CallbackQuery):
-    if ":" in callback.data:
-        parts = callback.data.split(":")
+    call_data: str = callback.data or ""
+    if ":" in call_data:
+        parts = call_data.split(":")
         category = parts[1]
         page = int(parts[2])
     else:
-        parts = callback.data.split("_")
+        parts = call_data.split("_")
         page = int(parts[-1])
         category = "_".join(parts[1:-1])
 
@@ -184,7 +184,7 @@ async def callback_pagination(callback: CallbackQuery):
 
 @router.callback_query(F.data.startswith("game_"))
 async def callback_game_detail(callback: CallbackQuery):
-    game_id = int(callback.data.split("_")[1])
+    game_id = int((callback.data or "game_0").split("_")[1])
     game = await get_game_by_id(game_id)
 
     if not game:
@@ -225,7 +225,7 @@ async def callback_get_apk(callback: CallbackQuery, bot: Bot):
     import tempfile
     import os
     
-    game_id = int(callback.data.split("_")[2])
+    game_id = int((callback.data or "get_apk_0").split("_")[2])
     game = await get_game_by_id(game_id)
 
     if not game:
@@ -274,7 +274,7 @@ async def callback_get_apk(callback: CallbackQuery, bot: Bot):
 
     # 2. O'yin nomi asosida haqiqiy APKPure package name ni aniqlash
     try:
-        from scripts.package_map import get_package_name, get_apkpure_cdn_url
+        from scripts.package_map import get_package_name
         package_name = get_package_name(game["title"])
     except Exception:
         package_name = "com.kiloo.subwaysurf"
@@ -299,7 +299,7 @@ async def callback_get_apk(callback: CallbackQuery, bot: Bot):
         )
 
         # Faylni async fon jarayonda yuklab olish (event loop bloklanmaydi)
-        loop = asyncio.get_event_loop()
+        loop = asyncio.get_running_loop()
 
         def _download():
             tmp = tempfile.NamedTemporaryFile(delete=False, suffix=".apk", dir=str(DATA_DIR))
@@ -338,7 +338,7 @@ async def callback_get_apk(callback: CallbackQuery, bot: Bot):
         except Exception:
             pass
 
-    except Exception as e:
+    except Exception:
         # APKPure ishlamasa - asosiy zahira faylini jo'nat
         fallback_apk = DATA_DIR / "real_game.apk"
         if fallback_apk.exists() and fallback_apk.stat().st_size > 500000:

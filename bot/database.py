@@ -1,5 +1,5 @@
 import aiosqlite
-from bot.config import DATABASE_PATH, DATA_DIR
+from bot.config import DATABASE_PATH
 
 INITIAL_GAMES = [
     {
