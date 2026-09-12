@@ -18,14 +18,31 @@ def get_categories_keyboard() -> InlineKeyboardMarkup:
         
     return InlineKeyboardMarkup(inline_keyboard=buttons)
 
-def get_games_keyboard(games, category: str) -> InlineKeyboardMarkup:
-    """Muayyan toifadagi o'yinlar ro'yxati tugmalari"""
-    buttons = []
+def get_games_keyboard(games, category: str, page: int = 1, per_page: int = 8) -> InlineKeyboardMarkup:
+    """Muayyan toifadagi o'yinlar ro'yxati tugmalari (sahifalash / pagination bilan)"""
+    total_games = len(games)
+    total_pages = max(1, (total_games + per_page - 1) // per_page)
+    page = max(1, min(page, total_pages))
     
-    for game in games:
+    start_idx = (page - 1) * per_page
+    end_idx = start_idx + per_page
+    current_games = games[start_idx:end_idx]
+    
+    buttons = []
+    for game in current_games:
         downloads = f"({game['downloads_count']} ⬇️)" if game['downloads_count'] > 0 else ""
         text = f"🎮 {game['title']} {downloads}"
         buttons.append([InlineKeyboardButton(text=text, callback_data=f"game_{game['id']}")])
+        
+    # Sahifalash navigatsiyasi (agar o'yinlar 1 sahifadan ko'p bo'lsa)
+    if total_pages > 1:
+        nav_row = []
+        if page > 1:
+            nav_row.append(InlineKeyboardButton(text="⬅️ Oldingi", callback_data=f"page_{category}_{page - 1}"))
+        nav_row.append(InlineKeyboardButton(text=f"📄 {page}/{total_pages}", callback_data="noop"))
+        if page < total_pages:
+            nav_row.append(InlineKeyboardButton(text="Keyingi ➡️", callback_data=f"page_{category}_{page + 1}"))
+        buttons.append(nav_row)
         
     # Orqaga qaytish tugmasi
     buttons.append([InlineKeyboardButton(text="🔙 Toifalarga qaytish", callback_data="back_to_categories")])
@@ -63,9 +80,9 @@ def get_game_detail_keyboard(game) -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(inline_keyboard=buttons)
 
 def get_search_results_keyboard(games) -> InlineKeyboardMarkup:
-    """Qidiruv natijalari tugmalari"""
+    """Qidiruv natijalari tugmalari (birinchi 10 ta)"""
     buttons = []
-    for game in games:
+    for game in games[:10]:
         buttons.append([
             InlineKeyboardButton(
                 text=f"🎮 {game['title']}", 

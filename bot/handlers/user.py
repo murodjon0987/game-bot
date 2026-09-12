@@ -130,7 +130,30 @@ async def callback_category_selected(callback: CallbackQuery):
         else:
             await callback.message.edit_text(text, reply_markup=get_games_keyboard(games, category), parse_mode="HTML")
     except Exception:
-        await callback.message.answer(text, reply_markup=get_games_keyboard(games, category), parse_mode="HTML")
+        pass
+    await callback.answer()
+
+@router.callback_query(F.data == "noop")
+async def callback_noop(callback: CallbackQuery):
+    await callback.answer()
+
+@router.callback_query(F.data.startswith("page_"))
+async def callback_pagination(callback: CallbackQuery):
+    parts = callback.data.split("_")
+    category = parts[1]
+    page = int(parts[2])
+    games = await get_games_by_category(category)
+    cat_title = CATEGORIES.get(category, category.title())
+
+    text = f"📂 <b>{cat_title}</b> toifasidagi o'yinlar:\nKerakli o'yinni tanlang:"
+    try:
+        await callback.message.edit_text(
+            text, 
+            reply_markup=get_games_keyboard(games, category, page=page), 
+            parse_mode="HTML"
+        )
+    except Exception:
+        pass
     await callback.answer()
 
 @router.callback_query(F.data.startswith("game_"))

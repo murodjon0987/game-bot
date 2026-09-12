@@ -92,20 +92,9 @@ async def init_db():
         # O'yinlar jadvali bo'shmi? Bo'sh bo'lsa dastlabki o'yinlarni qo'shish
         cursor = await db.execute("SELECT COUNT(*) FROM games")
         count = (await cursor.fetchone())[0]
-        if count == 0:
-            for game in INITIAL_GAMES:
-                await db.execute("""
-                    INSERT INTO games (category, title, description, photo, apk_file_id, download_url)
-                    VALUES (?, ?, ?, ?, ?, ?)
-                """, (
-                    game["category"],
-                    game["title"],
-                    game["description"],
-                    game["photo"],
-                    game["apk_file_id"],
-                    game["download_url"]
-                ))
-            await db.commit()
+        if count < 100:
+            from scripts.seed_1000_games import seed_1000_games
+            await seed_1000_games()
             
         # Dastlabki majburiy obuna kanalini qo'shish
         ch_cursor = await db.execute("SELECT COUNT(*) FROM channels")

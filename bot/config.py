@@ -22,8 +22,10 @@ DATABASE_PATH = DATA_DIR / "games.db"
 
 # Available game categories with emojis
 CATEGORIES = {
+    "vip_mod": "💎 VIP & Cheksiz Coins (MOD)",
     "action": "🔥 Jangari (Action)",
     "racing": "🏎 Poyga (Racing)",
+    "simulator": "🚗 Simulyator & Avto",
     "puzzle": "🧩 Mantiqiy (Puzzle)",
     "sport": "⚽ Sport",
     "adventure": "🏝 Sarguzasht (Adventure)",
