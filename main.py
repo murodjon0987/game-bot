@@ -85,8 +85,8 @@ async def main():
     logger.info(f"🤖 Bot muvaffaqiyatli ishga tushdi: @{bot_info.username} (ID: {bot_info.id})")
 
     try:
-        # Eski kutilayotgan yangilanishlarni o'chirish va pollingni boshlash
-        await bot.delete_webhook(drop_pending_updates=True)
+        # Webhookni tozalash va pollingni boshlash
+        await bot.delete_webhook(drop_pending_updates=False)
         await dp.start_polling(bot, allowed_updates=dp.resolve_used_update_types())
     finally:
         logger.info("Bot to'xtatilmoqda...")

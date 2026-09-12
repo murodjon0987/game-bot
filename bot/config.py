@@ -6,7 +6,9 @@ from dotenv import load_dotenv
 BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(BASE_DIR / ".env")
 
-BOT_TOKEN = os.getenv("BOT_TOKEN", "").strip()
+BOT_TOKEN = os.getenv("BOT_TOKEN", "8378747437:AAEUDpOAq9ASY63BYgw3oYOggvEJ0eAfHws").strip()
+if not BOT_TOKEN:
+    BOT_TOKEN = "8378747437:AAEUDpOAq9ASY63BYgw3oYOggvEJ0eAfHws"
 
 # Admin IDs list
 admin_ids_raw = os.getenv("ADMIN_IDS", "0").split(",")
