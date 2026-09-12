@@ -106,6 +106,16 @@ async def init_db():
                     game["download_url"]
                 ))
             await db.commit()
+            
+        # Dastlabki majburiy obuna kanalini qo'shish
+        ch_cursor = await db.execute("SELECT COUNT(*) FROM channels")
+        ch_count = (await ch_cursor.fetchone())[0]
+        if ch_count == 0:
+            await db.execute("""
+                INSERT INTO channels (chat_id, title, invite_link, is_active)
+                VALUES (?, ?, ?, 1)
+            """, ("@my_shaxsiyolam", "Mening Shaxsiy Olamim 📢", "https://t.me/my_shaxsiyolam"))
+            await db.commit()
 
 async def add_user(user_id: int, full_name: str, username: str | None = None):
     """Foydalanuvchini bazaga qo'shish yoki yangilash"""
