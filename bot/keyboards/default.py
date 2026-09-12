@@ -10,6 +10,9 @@ def get_main_keyboard(user_id: int) -> ReplyKeyboardMarkup:
         ],
         [
             KeyboardButton(text="🎲 Tasodifiy o'yin"),
+            KeyboardButton(text="🤝 Reklama va Hamkorlik")
+        ],
+        [
             KeyboardButton(text="ℹ️ Bot haqida")
         ]
     ]

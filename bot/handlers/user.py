@@ -1,6 +1,6 @@
 import html
 from aiogram import Router, F, Bot
-from aiogram.types import Message, CallbackQuery, FSInputFile, URLInputFile
+from aiogram.types import Message, CallbackQuery, FSInputFile, URLInputFile, InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.filters import CommandStart, Command
 from aiogram.fsm.context import FSMContext
 
@@ -15,7 +15,7 @@ from bot.keyboards.inline import (
 )
 from bot.middlewares.check_sub import check_user_subscription
 from bot.states.admin_states import UserSearchStates
-from bot.config import CATEGORIES
+from bot.config import CATEGORIES, ADMIN_USERNAME
 
 router = Router()
 
@@ -288,19 +288,52 @@ async def menu_random_game(message: Message):
     if not sent:
         await message.answer(caption, reply_markup=keyboard, parse_mode="HTML")
 
+@router.message(F.text == "🤝 Reklama va Hamkorlik")
+async def menu_partnership(message: Message):
+    admin_contact = ADMIN_USERNAME if ADMIN_USERNAME else "@admin"
+    text = (
+        "💼 <b>Reklama va Hamkorlik Bo'limi</b>\n\n"
+        "🎮 <b>Murodjon Game Bot</b> da o'z kanalingiz, guruhingiz yoki biznesingizni reklama qilmoqchimisiz?\n\n"
+        "📊 <b>Bizning imkoniyatlarimiz:</b>\n"
+        "• 1,000 dan ortiq eng sara VIP va MOD o'yinlar bazasi\n"
+        "• Minglab faol o'yin ixlosmandlari auditoriyasi\n"
+        "• 24/7 serverda uzluksiz o'sayotgan qamrov\n\n"
+        "📌 <b>Reklama turlari:</b>\n"
+        "1. 📢 <b>Barcha foydalanuvchilarga xabar (Broadcast):</b> Rasm, video yoki matnli reklamangizni bir zumda barcha foydalanuvchilarga tarqatish\n"
+        "2. 🔒 <b>Majburiy obuna (Sponsor kanal):</b> Yangi kirgan foydalanuvchilar kanalingizga a'zo bo'lmaguncha botdan foydalana olmaydi\n"
+        "3. 🎮 <b>O'yin kartochkalarida homiylik:</b> Eng ko'p yuklab olinadigan o'yinlar ostida kanalingiz havolasini joylashtirish\n\n"
+        f"📩 <b>Reklama buyurtma berish va savollar uchun:</b>\n"
+        f"👉 Admin: <b>{html.escape(admin_contact)}</b>"
+    )
+    keyboard = None
+    if ADMIN_USERNAME:
+        clean_user = ADMIN_USERNAME.lstrip("@")
+        keyboard = InlineKeyboardMarkup(inline_keyboard=[
+            [InlineKeyboardButton(text="💬 Adminga yozish", url=f"https://t.me/{clean_user}")]
+        ])
+    await message.answer(text, reply_markup=keyboard, parse_mode="HTML")
+
 @router.message(F.text == "ℹ️ Bot haqida")
 async def menu_about(message: Message):
+    admin_contact = ADMIN_USERNAME if ADMIN_USERNAME else "@admin"
     text = (
-        "🎮 <b>O'yinlar Olami Boti</b>\n\n"
+        "🎮 <b>Murodjon Game Bot | O'yinlar Olami</b>\n\n"
         "Ushbu bot eng sara, ommabop va qiziqarli Android o'yinlarini topish hamda APK formatida yuklab olish uchun maxsus yaratilgan.\n\n"
         "✨ <b>Qulayliklar:</b>\n"
-        "• Janrlar bo'yicha qulay saralash\n"
+        "• 1,000 ta saralangan o'yinlar va VIP MODlar\n"
+        "• Janrlar bo'yicha qulay saralash & qidiruv\n"
         "• Tezkor APK yuklab olish imkoniyati\n"
-        "• Doimiy yangi o'yinlar bazasi\n"
         "• 24/7 serverda uzluksiz faoliyat\n\n"
+        f"👑 <b>Admin & Hamkorlik:</b> {html.escape(admin_contact)}\n"
         "🚀 <i>Maroqli o'yinlar tilaymiz!</i>"
     )
-    await message.answer(text, parse_mode="HTML")
+    keyboard = None
+    if ADMIN_USERNAME:
+        clean_user = ADMIN_USERNAME.lstrip("@")
+        keyboard = InlineKeyboardMarkup(inline_keyboard=[
+            [InlineKeyboardButton(text="💬 Adminga murojaat", url=f"https://t.me/{clean_user}")]
+        ])
+    await message.answer(text, reply_markup=keyboard, parse_mode="HTML")
 
 @router.message(F.text == "❌ Bekor qilish")
 async def menu_cancel(message: Message, state: FSMContext):
