@@ -1,10 +1,10 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
-from bot.config import CATEGORIES
+from bot.config import CATEGORIES, GAME_CATEGORIES, APP_CATEGORIES
 
 def get_categories_keyboard() -> InlineKeyboardMarkup:
     """O'yin toifalari (kategoriyalar) tugmalari"""
     buttons = []
-    cat_items = list(CATEGORIES.items())
+    cat_items = [(k, CATEGORIES[k]) for k in GAME_CATEGORIES if k in CATEGORIES]
     
     # 2 tadan qatorlarga ajratish
     for i in range(0, len(cat_items), 2):
@@ -16,6 +16,14 @@ def get_categories_keyboard() -> InlineKeyboardMarkup:
             row.append(InlineKeyboardButton(text=name2, callback_data=f"cat_{key2}"))
         buttons.append(row)
         
+    return InlineKeyboardMarkup(inline_keyboard=buttons)
+
+def get_app_categories_keyboard() -> InlineKeyboardMarkup:
+    """Foydali dasturlar toifalari tugmalari"""
+    buttons = []
+    app_items = [(k, CATEGORIES[k]) for k in APP_CATEGORIES if k in CATEGORIES]
+    for key, name in app_items:
+        buttons.append([InlineKeyboardButton(text=name, callback_data=f"cat_{key}")])
     return InlineKeyboardMarkup(inline_keyboard=buttons)
 
 def get_games_keyboard(games, category: str, page: int = 1, per_page: int = 8) -> InlineKeyboardMarkup:

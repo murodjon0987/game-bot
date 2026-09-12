@@ -6,13 +6,14 @@ def get_main_keyboard(user_id: int) -> ReplyKeyboardMarkup:
     buttons = [
         [
             KeyboardButton(text="🎮 O'yinlar toifalari"),
-            KeyboardButton(text="🔍 O'yin qidirish")
+            KeyboardButton(text="📱 Foydali Dasturlar (PRO)")
         ],
         [
-            KeyboardButton(text="🎲 Tasodifiy o'yin"),
-            KeyboardButton(text="🤝 Reklama va Hamkorlik")
+            KeyboardButton(text="🔍 Qidiruv"),
+            KeyboardButton(text="🎲 Tasodifiy tanlov")
         ],
         [
+            KeyboardButton(text="🤝 Reklama va Hamkorlik"),
             KeyboardButton(text="ℹ️ Bot haqida")
         ]
     ]

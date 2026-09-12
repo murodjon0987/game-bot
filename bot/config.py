@@ -27,7 +27,7 @@ DATA_DIR = BASE_DIR / "data"
 DATA_DIR.mkdir(parents=True, exist_ok=True)
 DATABASE_PATH = DATA_DIR / "games.db"
 
-# Available game categories with emojis
+# Available game and app categories with emojis
 CATEGORIES = {
     "vip_mod": "💎 VIP & Cheksiz Coins (MOD)",
     "action": "🔥 Jangari (Action)",
@@ -36,5 +36,12 @@ CATEGORIES = {
     "puzzle": "🧩 Mantiqiy (Puzzle)",
     "sport": "⚽ Sport",
     "adventure": "🏝 Sarguzasht (Adventure)",
-    "retro": "🕹 Retro & Arkada"
+    "retro": "🕹 Retro & Arkada",
+    "apps_video": "🎬 Video & Foto Montaj (PRO)",
+    "apps_media": "🎵 Musiqa & Media (Premium)",
+    "apps_vpn": "⚡️ Tezkor VPN & Xavfsizlik",
+    "apps_tools": "🛠 Foydali Dasturlar & AI"
 }
+
+GAME_CATEGORIES = ["vip_mod", "action", "racing", "simulator", "puzzle", "sport", "adventure", "retro"]
+APP_CATEGORIES = ["apps_video", "apps_media", "apps_vpn", "apps_tools"]

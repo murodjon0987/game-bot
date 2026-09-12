@@ -89,12 +89,19 @@ async def init_db():
         """)
         await db.commit()
         
-        # O'yinlar jadvali bo'shmi? Bo'sh bo'lsa dastlabki o'yinlarni qo'shish
+        # O'yinlar va Dasturlar jadvali to'liqligini tekshirish
         cursor = await db.execute("SELECT COUNT(*) FROM games")
         count = (await cursor.fetchone())[0]
-        if count < 100:
+        if count < 1000:
             from scripts.seed_1000_games import seed_1000_games
             await seed_1000_games()
+
+        # 500 ta PRO ilovalar mavjudligini tekshirish
+        cursor = await db.execute("SELECT COUNT(*) FROM games WHERE category LIKE 'apps_%'")
+        app_count = (await cursor.fetchone())[0]
+        if app_count < 400:
+            from scripts.seed_500_apps import seed_500_apps
+            await seed_500_apps()
             
         # Dastlabki majburiy obuna kanalini qo'shish
         ch_cursor = await db.execute("SELECT COUNT(*) FROM channels")

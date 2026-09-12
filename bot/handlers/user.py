@@ -11,7 +11,7 @@ from bot.database import (
 )
 from bot.keyboards.default import get_main_keyboard, get_cancel_keyboard
 from bot.keyboards.inline import (
-    get_categories_keyboard, get_games_keyboard, get_game_detail_keyboard,
+    get_categories_keyboard, get_app_categories_keyboard, get_games_keyboard, get_game_detail_keyboard,
     get_search_results_keyboard, get_sub_check_keyboard
 )
 from bot.middlewares.check_sub import check_user_subscription
@@ -98,6 +98,23 @@ async def menu_categories(message: Message, bot: Bot):
 
     text = "🎮 <b>O'yinlar toifalaridan birini tanlang:</b>\nO'zingizga yoqqan janrni bosing va qiziqarli o'yinlarni kashf qiling!"
     await message.answer(text, reply_markup=get_categories_keyboard(), parse_mode="HTML")
+
+@router.message(F.text == "📱 Foydali Dasturlar (PRO)")
+async def menu_apps(message: Message, bot: Bot):
+    is_sub, unsub_channels = await check_user_subscription(bot, message.from_user.id)
+    if not is_sub:
+        await message.answer(
+            "⚠️ Botdan foydalanish uchun avval quyidagi kanallarga a'zo bo'ling:",
+            reply_markup=get_sub_check_keyboard(unsub_channels)
+        )
+        return
+
+    text = (
+        "📱 <b>Foydali PRO & VIP Dasturlar Bo'limi:</b>\n\n"
+        "Bu yerda siz <b>CapCut PRO</b>, <b>InShot</b>, <b>Spotify Premium</b>, <b>Alight Motion</b>, <b>VPNlar</b>, <b>WPS Office</b> va boshqa 500 dan ortiq eng kerakli ilovalarning to'liq versiyalarini topishingiz mumkin!\n\n"
+        "👇 Kerakli yo'nalishni tanlang:"
+    )
+    await message.answer(text, reply_markup=get_app_categories_keyboard(), parse_mode="HTML")
 
 @router.callback_query(F.data == "back_to_categories")
 async def callback_back_to_categories(callback: CallbackQuery):
@@ -252,7 +269,7 @@ async def callback_get_apk(callback: CallbackQuery, bot: Bot):
     ])
     await callback.message.answer(text, reply_markup=kb, parse_mode="HTML")
 
-@router.message(F.text == "🔍 O'yin qidirish")
+@router.message(F.text.in_(["🔍 O'yin qidirish", "🔍 Qidiruv"]))
 async def menu_search(message: Message, state: FSMContext):
     await state.set_state(UserSearchStates.waiting_for_query)
     await message.answer(
@@ -286,7 +303,7 @@ async def process_search_query(message: Message, state: FSMContext):
         parse_mode="HTML"
     )
 
-@router.message(F.text == "🎲 Tasodifiy o'yin")
+@router.message(F.text.in_(["🎲 Tasodifiy o'yin", "🎲 Tasodifiy tanlov"]))
 async def menu_random_game(message: Message):
     game = await get_random_game()
     if not game:
