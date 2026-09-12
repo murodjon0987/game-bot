@@ -188,8 +188,17 @@ async def seed_1000_games():
                     f"🛡 Xavfsizlik: Virus Total tekshiruvidan o'tgan, 100% xavfsiz."
                 )
                 
-                # Bot ichida to'g'ridan-to'g'ri APK tashlash uchun
-                download_url = None
+                from scripts.update_real_urls import SLUG_MAP
+                matched_slug = None
+                for key, slug in SLUG_MAP.items():
+                    if key.lower() in tmpl_name.lower():
+                        matched_slug = slug
+                        break
+                if not matched_slug:
+                    import re
+                    clean = re.sub(r'[^a-zA-Z0-9]', '-', tmpl_name.split('(')[0]).strip('-').lower()
+                    matched_slug = clean if clean else "subway-surfers"
+                download_url = f"https://{matched_slug}.en.uptodown.com/android/download"
                 
                 downloads = 100 + ((i * 37) % 9500)
                 

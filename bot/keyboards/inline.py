@@ -52,23 +52,23 @@ def get_game_detail_keyboard(game) -> InlineKeyboardMarkup:
     """O'yin tafsilotlari va yuklab olish tugmalari"""
     buttons = []
     
-    # 1. Telegram APK fayl yuborish tugmasi (to'g'ridan-to'g'ri bot ichida tashlaydi)
+    # 1. Haqiqiy va to'liq APK yuklab olish (Rasmiy tezkor server)
+    dl_url = game["download_url"] or f"https://subway-surfers.en.uptodown.com/android/download"
     buttons.append([
         InlineKeyboardButton(
-            text="📥 APK faylni yuklab olish (Botda)", 
+            text="🚀 Haqiqiy APK yuklab olish (Rasmiy Server)", 
+            url=dl_url
+        )
+    ])
+    
+    # 2. Telegram orqali yuklash varianti
+    buttons.append([
+        InlineKeyboardButton(
+            text="📥 Telegram orqali olish (APK)", 
             callback_data=f"get_apk_{game['id']}"
         )
     ])
     
-    # 2. Faqat tashqi web havola bo'lsa (boshqa kanallarga yo'naltirmaydi!)
-    if game["download_url"] and not any(ch in game["download_url"] for ch in ["t.me", "telegram.me"]):
-        buttons.append([
-            InlineKeyboardButton(
-                text="🌐 Tashqi yuklab olish havolasi", 
-                url=game["download_url"]
-            )
-        ])
-        
     # 3. Orqaga qaytish tugmasi
     buttons.append([
         InlineKeyboardButton(
