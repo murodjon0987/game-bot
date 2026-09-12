@@ -89,28 +89,12 @@ async def init_db():
         """)
         await db.commit()
         
-        # O'yinlar va Dasturlar jadvali to'liqligini tekshirish
+        # O'yinlar bazasini tekshirish - faqat haqiqiy APK li o'yinlar bo'lishi kerak
         cursor = await db.execute("SELECT COUNT(*) FROM games")
         count = (await cursor.fetchone())[0]
-        if count < 1000:
-            from scripts.seed_1000_games import seed_1000_games
-            await seed_1000_games()
-
-        # 500 ta PRO ilovalar mavjudligini tekshirish
-        cursor = await db.execute("SELECT COUNT(*) FROM games WHERE category LIKE 'apps_%'")
-        app_count = (await cursor.fetchone())[0]
-        if app_count < 400:
-            from scripts.seed_500_apps import seed_500_apps
-            await seed_500_apps()
-            
-        # Haqiqiy va ishlaydigan APK fayli mavjudligini ta'minlash
-        real_apk = DATA_DIR / "real_game.apk"
-        if not real_apk.exists() or real_apk.stat().st_size < 1000000:
-            import urllib.request
-            try:
-                urllib.request.urlretrieve("https://f-droid.org/F-Droid.apk", str(real_apk))
-            except Exception as e:
-                print(f"APK download warning: {e}")
+        if count < 10:
+            from scripts.reseed_real import reseed_real_games
+            await reseed_real_games()
 
         # Dastlabki majburiy obuna kanalini qo'shish
         ch_cursor = await db.execute("SELECT COUNT(*) FROM channels")
