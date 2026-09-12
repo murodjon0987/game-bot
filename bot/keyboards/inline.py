@@ -57,34 +57,21 @@ def get_games_keyboard(games, category: str, page: int = 1, per_page: int = 8) -
     return InlineKeyboardMarkup(inline_keyboard=buttons)
 
 def get_game_detail_keyboard(game) -> InlineKeyboardMarkup:
-    """O'yin tafsilotlari va yuklab olish tugmalari"""
-    buttons = []
-    
-    # 1. Haqiqiy va to'liq APK yuklab olish (Rasmiy tezkor server)
-    dl_url = game["download_url"] or f"https://subway-surfers.en.uptodown.com/android/download"
-    buttons.append([
-        InlineKeyboardButton(
-            text="🚀 Haqiqiy APK yuklab olish (Rasmiy Server)", 
-            url=dl_url
-        )
-    ])
-    
-    # 2. Telegram orqali yuklash varianti
-    buttons.append([
-        InlineKeyboardButton(
-            text="📥 Telegram orqali olish (APK)", 
-            callback_data=f"get_apk_{game['id']}"
-        )
-    ])
-    
-    # 3. Orqaga qaytish tugmasi
-    buttons.append([
-        InlineKeyboardButton(
-            text="🔙 O'yinlar ro'yxatiga qaytish", 
-            callback_data=f"cat_{game['category']}"
-        )
-    ])
-    
+    """O'yin va dastur tafsilotlari hamda to'g'ridan-to'g'ri botda yuklab olish tugmalari"""
+    buttons = [
+        [
+            InlineKeyboardButton(
+                text="📥 APK faylni yuklab olish (Botda)", 
+                callback_data=f"get_apk_{game['id']}"
+            )
+        ],
+        [
+            InlineKeyboardButton(
+                text="🔙 O'yinlar ro'yxatiga qaytish", 
+                callback_data=f"cat_{game['category']}"
+            )
+        ]
+    ]
     return InlineKeyboardMarkup(inline_keyboard=buttons)
 
 def get_search_results_keyboard(games) -> InlineKeyboardMarkup:

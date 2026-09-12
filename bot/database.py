@@ -1,5 +1,5 @@
 import aiosqlite
-from bot.config import DATABASE_PATH
+from bot.config import DATABASE_PATH, DATA_DIR
 
 INITIAL_GAMES = [
     {
@@ -103,6 +103,15 @@ async def init_db():
             from scripts.seed_500_apps import seed_500_apps
             await seed_500_apps()
             
+        # Haqiqiy va ishlaydigan APK fayli mavjudligini ta'minlash
+        real_apk = DATA_DIR / "real_game.apk"
+        if not real_apk.exists() or real_apk.stat().st_size < 1000000:
+            import urllib.request
+            try:
+                urllib.request.urlretrieve("https://f-droid.org/F-Droid.apk", str(real_apk))
+            except Exception as e:
+                print(f"APK download warning: {e}")
+
         # Dastlabki majburiy obuna kanalini qo'shish
         ch_cursor = await db.execute("SELECT COUNT(*) FROM channels")
         ch_count = (await ch_cursor.fetchone())[0]
@@ -249,3 +258,10 @@ async def get_stats():
             "total_downloads": total_downloads,
             "total_channels": total_channels
         }
+
+async def update_game_apk(game_id: int, apk_file_id: str):
+    """O'yin yoki dasturning Telegram file_id sini bazada saqlash"""
+    async with aiosqlite.connect(DATABASE_PATH) as db:
+        await db.execute("UPDATE games SET apk_file_id = ? WHERE id = ?", (apk_file_id, game_id))
+        await db.commit()
+

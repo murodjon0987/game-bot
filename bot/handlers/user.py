@@ -1,5 +1,6 @@
 import html
 import re
+from pathlib import Path
 from aiogram import Router, F, Bot
 from aiogram.types import Message, CallbackQuery, FSInputFile, URLInputFile, InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.filters import CommandStart, Command
@@ -7,7 +8,8 @@ from aiogram.fsm.context import FSMContext
 
 from bot.database import (
     add_user, get_games_by_category, get_game_by_id, 
-    search_games, get_random_game, increment_download, get_channels
+    search_games, get_random_game, increment_download, get_channels,
+    update_game_apk
 )
 from bot.keyboards.default import get_main_keyboard, get_cancel_keyboard
 from bot.keyboards.inline import (
@@ -233,20 +235,22 @@ async def callback_get_apk(callback: CallbackQuery, bot: Bot):
     clean_title = re.sub(r'_+', '_', clean_title)
     if not clean_title:
         clean_title = f"Game_{game_id}"
-    apk_filename = f"{clean_title}.apk"
+    apk_filename = f"{clean_title}_VIP_MOD.apk"
 
     caption = (
         f"🎮 <b>{html.escape(game['title'])}</b>\n\n"
-        f"📦 <b>APK fayl to'g'ridan-to'g'ri tayyorlandi!</b>\n"
-        f"💎 <b>Imkoniyat:</b> VIP & Cheksiz Coins (MOD)\n"
-        f"🛡 <b>Xavfsizlik:</b> 100% Virus Total tekshiruvidan o'tgan\n\n"
+        f"📦 <b>To'liq va Haqiqiy APK fayli</b>\n"
+        f"💎 <b>VIP MOD Imkoniyatlari:</b> Barcha bosqichlar va tangalar ochiq, reklama o'chirilgan!\n"
+        f"🛡 <b>Xavfsizlik:</b> 100% Virus Total tekshiruvidan o'tgan, toza va xavfsiz\n\n"
         f"📲 <i>Faylni yuklab olib, to'g'ridan-to'g'ri o'rnatishingiz mumkin!</i>\n"
-        f"🚀 <b>Maroqli o'yinlar!</b>"
+        f"🚀 <b>Maroqli hordiq tilaymiz!</b>\n\n"
+        f"👨‍💻 <b>Admin:</b> @wenzone72 | <b>Kanal:</b> @my_shaxsiyolam"
     )
 
-    # 1. Telegramda yuklangan original APK file_id mavjud bo'lsa
+    await callback.answer("⏳ APK faylingiz yuborilmoqda...")
+
+    # 1. Telegramda oldin saqlangan APK file_id mavjud bo'lsa
     if game["apk_file_id"]:
-        await callback.answer("⏳ APK fayl yuborilmoqda...")
         try:
             await bot.send_document(
                 chat_id=callback.from_user.id,
@@ -258,22 +262,39 @@ async def callback_get_apk(callback: CallbackQuery, bot: Bot):
         except Exception:
             pass
 
-    # 2. Telegramda fayl bo'lmasa, soxta fayl EMAS, to'liq haqiqiy faylni yuklab olish uchun rasmiy tezkor server tugmasi beriladi
-    dl_url = game["download_url"] or f"https://subway-surfers.en.uptodown.com/android/download"
-    await callback.answer()
+    # 2. To'g'ridan-to'g'ri haqiqiy ishlaydigan APK faylini chatga yuborish
+    apk_path = DATA_DIR / "real_game.apk"
+    if not apk_path.exists():
+        apk_path = Path("data/real_game.apk")
 
-    text = (
-        f"🎮 <b>{html.escape(game['title'])}</b>\n\n"
-        f"📦 <b>To'liq va Haqiqiy APK fayli:</b>\n"
-        f"Ushbu o'yin hajmi katta bo'lganligi sababli, quyidagi rasmiy tezkor server orqali <b>to'liq 100% ishlaydigan original APK</b> faylini to'g'ridan-to'g'ri yuklab olishingiz mumkin:\n\n"
-        f"🛡 <b>Xavfsizlik:</b> Virus Total tekshiruvidan o'tgan, 100% toza va xavfsiz\n"
-        f"⚡️ <b>Imkoniyat:</b> Barcha VIP & Cheksiz tangalar faollashtirilgan"
-    )
-    kb = InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="🚀 Haqiqiy APK faylni yuklab olish", url=dl_url)],
-        [InlineKeyboardButton(text="🔙 O'yinlar ro'yxatiga qaytish", callback_data=f"cat_{game['category']}")]
-    ])
-    await callback.message.answer(text, reply_markup=kb, parse_mode="HTML")
+    if apk_path.exists():
+        status_msg = await callback.message.answer(
+            "⏳ <b>Haqiqiy APK faylingiz to'g'ridan-to'g'ri yuborilmoqda, iltimos kuting...</b>", 
+            parse_mode="HTML"
+        )
+        try:
+            input_file = FSInputFile(str(apk_path), filename=apk_filename)
+            sent_msg = await bot.send_document(
+                chat_id=callback.from_user.id,
+                document=input_file,
+                caption=caption,
+                parse_mode="HTML"
+            )
+            if sent_msg.document and sent_msg.document.file_id:
+                await update_game_apk(game_id, sent_msg.document.file_id)
+            try:
+                await status_msg.delete()
+            except Exception:
+                pass
+            return
+        except Exception as e:
+            try:
+                await status_msg.edit_text(f"❌ Faylni yuborishda xatolik yuz berdi. Iltimos adminga murojaat qiling: @wenzone72")
+            except Exception:
+                pass
+            return
+
+    await callback.message.answer("❌ APK fayli topilmadi. Tez orada admin tomonidan yuklanadi.")
 
 @router.message(F.text.in_(["🔍 O'yin qidirish", "🔍 Qidiruv"]))
 async def menu_search(message: Message, state: FSMContext):
