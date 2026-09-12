@@ -1,0 +1,15 @@
+project-includes = [
+    "main.py",
+    "bot/**/*.py"
+]
+
+project-excludes = [
+    ".venv/**",
+    "**/__pycache__/**"
+]
+
+[errors]
+missing-attribute = "ignore"
+bad-argument-type = "ignore"
+bad-function-definition = "ignore"
+unsupported-operation = "ignore"

@@ -13,8 +13,12 @@ from bot.handlers import user, admin
 # Windows console UTF-8 qo'llab-quvvatlash
 if sys.platform == "win32":
     try:
-        sys.stdout.reconfigure(encoding='utf-8')
-        sys.stderr.reconfigure(encoding='utf-8')
+        reconf_out = getattr(sys.stdout, "reconfigure", None)
+        if callable(reconf_out):
+            reconf_out(encoding="utf-8")
+        reconf_err = getattr(sys.stderr, "reconfigure", None)
+        if callable(reconf_err):
+            reconf_err(encoding="utf-8")
     except Exception:
         pass
 

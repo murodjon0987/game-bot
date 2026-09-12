@@ -107,7 +107,7 @@ async def init_db():
                 ))
             await db.commit()
 
-async def add_user(user_id: int, full_name: str, username: str = None):
+async def add_user(user_id: int, full_name: str, username: str | None = None):
     """Foydalanuvchini bazaga qo'shish yoki yangilash"""
     async with aiosqlite.connect(DATABASE_PATH) as db:
         await db.execute("""
