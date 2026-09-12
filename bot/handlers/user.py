@@ -132,7 +132,7 @@ async def callback_back_to_categories(callback: CallbackQuery):
 
 @router.callback_query(F.data.startswith("cat_"))
 async def callback_category_selected(callback: CallbackQuery):
-    category = callback.data.split("_")[1]
+    category = callback.data.replace("cat_", "", 1)
     games = await get_games_by_category(category)
     cat_title = CATEGORIES.get(category, category.title())
 
@@ -155,11 +155,17 @@ async def callback_category_selected(callback: CallbackQuery):
 async def callback_noop(callback: CallbackQuery):
     await callback.answer()
 
-@router.callback_query(F.data.startswith("page_"))
+@router.callback_query(F.data.startswith("page:") | F.data.startswith("page_"))
 async def callback_pagination(callback: CallbackQuery):
-    parts = callback.data.split("_")
-    category = parts[1]
-    page = int(parts[2])
+    if ":" in callback.data:
+        parts = callback.data.split(":")
+        category = parts[1]
+        page = int(parts[2])
+    else:
+        parts = callback.data.split("_")
+        page = int(parts[-1])
+        category = "_".join(parts[1:-1])
+
     games = await get_games_by_category(category)
     cat_title = CATEGORIES.get(category, category.title())
 

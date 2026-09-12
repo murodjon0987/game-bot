@@ -46,10 +46,10 @@ def get_games_keyboard(games, category: str, page: int = 1, per_page: int = 8) -
     if total_pages > 1:
         nav_row = []
         if page > 1:
-            nav_row.append(InlineKeyboardButton(text="⬅️ Oldingi", callback_data=f"page_{category}_{page - 1}"))
+            nav_row.append(InlineKeyboardButton(text="⬅️ Oldingi", callback_data=f"page:{category}:{page - 1}"))
         nav_row.append(InlineKeyboardButton(text=f"📄 {page}/{total_pages}", callback_data="noop"))
         if page < total_pages:
-            nav_row.append(InlineKeyboardButton(text="Keyingi ➡️", callback_data=f"page_{category}_{page + 1}"))
+            nav_row.append(InlineKeyboardButton(text="Keyingi ➡️", callback_data=f"page:{category}:{page + 1}"))
         buttons.append(nav_row)
         
     # Orqaga qaytish tugmasi
