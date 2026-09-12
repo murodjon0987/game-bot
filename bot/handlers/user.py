@@ -220,6 +220,11 @@ async def callback_game_detail(callback: CallbackQuery):
 
 @router.callback_query(F.data.startswith("get_apk_"))
 async def callback_get_apk(callback: CallbackQuery, bot: Bot):
+    import asyncio
+    import urllib.request
+    import tempfile
+    import os
+    
     game_id = int(callback.data.split("_")[2])
     game = await get_game_by_id(game_id)
 
@@ -247,54 +252,127 @@ async def callback_get_apk(callback: CallbackQuery, bot: Bot):
         f"👨‍💻 <b>Admin:</b> @wenzone72 | <b>Kanal:</b> @my_shaxsiyolam"
     )
 
-    await callback.answer("⏳ APK faylingiz yuborilmoqda...")
+    await callback.answer("⏳ APK faylingiz tayyorlanmoqda...")
 
-    # 1. Telegramda oldin saqlangan APK file_id mavjud bo'lsa
+    # 1. Telegramda oldin saqlangan APK file_id mavjud bo'lsa - tezda jo'nat
     if game["apk_file_id"]:
         try:
+            status_msg = await callback.message.answer("⏳ <b>APK fayl yuborilmoqda...</b>", parse_mode="HTML")
             await bot.send_document(
                 chat_id=callback.from_user.id,
                 document=game["apk_file_id"],
                 caption=caption,
                 parse_mode="HTML"
             )
-            return
-        except Exception:
-            pass
-
-    # 2. To'g'ridan-to'g'ri haqiqiy ishlaydigan APK faylini chatga yuborish
-    apk_path = DATA_DIR / "real_game.apk"
-    if not apk_path.exists():
-        apk_path = Path("data/real_game.apk")
-
-    if apk_path.exists():
-        status_msg = await callback.message.answer(
-            "⏳ <b>Haqiqiy APK faylingiz to'g'ridan-to'g'ri yuborilmoqda, iltimos kuting...</b>", 
-            parse_mode="HTML"
-        )
-        try:
-            input_file = FSInputFile(str(apk_path), filename=apk_filename)
-            sent_msg = await bot.send_document(
-                chat_id=callback.from_user.id,
-                document=input_file,
-                caption=caption,
-                parse_mode="HTML"
-            )
-            if sent_msg.document and sent_msg.document.file_id:
-                await update_game_apk(game_id, sent_msg.document.file_id)
             try:
                 await status_msg.delete()
             except Exception:
                 pass
             return
-        except Exception as e:
+        except Exception:
+            pass
+
+    # 2. O'yin nomi asosida haqiqiy APKPure package name ni aniqlash
+    try:
+        from scripts.package_map import get_package_name, get_apkpure_cdn_url
+        package_name = get_package_name(game["title"])
+    except Exception:
+        package_name = "com.kiloo.subwaysurf"
+
+    cdn_url = f"https://d.apkpure.net/b/APK/{package_name}?version=latest"
+
+    status_msg = await callback.message.answer(
+        f"📥 <b>{html.escape(game['title'])}</b> APK yuklanmoqda...\n"
+        f"⏳ <i>Bu bir oz vaqt olishi mumkin, kuting...</i>",
+        parse_mode="HTML"
+    )
+
+    # 3. Haqiqiy APK faylini APKPure CDN dan yuklab Telegramga jo'natish
+    tmp_path = None
+    try:
+        req = urllib.request.Request(
+            cdn_url,
+            headers={
+                "User-Agent": "Mozilla/5.0 (Android 13; Mobile; rv:120.0) Gecko/120.0 Firefox/120.0",
+                "Accept": "*/*",
+            }
+        )
+
+        # Faylni async fon jarayonda yuklab olish (event loop bloklanmaydi)
+        loop = asyncio.get_event_loop()
+
+        def _download():
+            tmp = tempfile.NamedTemporaryFile(delete=False, suffix=".apk", dir=str(DATA_DIR))
             try:
-                await status_msg.edit_text(f"❌ Faylni yuborishda xatolik yuz berdi. Iltimos adminga murojaat qiling: @wenzone72")
+                with urllib.request.urlopen(req, timeout=120) as response:
+                    chunk_size = 65536
+                    while True:
+                        chunk = response.read(chunk_size)
+                        if not chunk:
+                            break
+                        tmp.write(chunk)
+                tmp.close()
+                return tmp.name
+            except Exception as e:
+                tmp.close()
+                try:
+                    os.unlink(tmp.name)
+                except Exception:
+                    pass
+                raise e
+
+        tmp_path = await loop.run_in_executor(None, _download)
+
+        # Yuklab olindi - Telegramga jo'natamiz
+        input_file = FSInputFile(tmp_path, filename=apk_filename)
+        sent_msg = await bot.send_document(
+            chat_id=callback.from_user.id,
+            document=input_file,
+            caption=caption,
+            parse_mode="HTML"
+        )
+        if sent_msg.document and sent_msg.document.file_id:
+            await update_game_apk(game_id, sent_msg.document.file_id)
+        try:
+            await status_msg.delete()
+        except Exception:
+            pass
+
+    except Exception as e:
+        # APKPure ishlamasa - asosiy zahira faylini jo'nat
+        fallback_apk = DATA_DIR / "real_game.apk"
+        if fallback_apk.exists() and fallback_apk.stat().st_size > 500000:
+            try:
+                input_file = FSInputFile(str(fallback_apk), filename=apk_filename)
+                sent_msg = await bot.send_document(
+                    chat_id=callback.from_user.id,
+                    document=input_file,
+                    caption=caption,
+                    parse_mode="HTML"
+                )
+                if sent_msg.document and sent_msg.document.file_id:
+                    await update_game_apk(game_id, sent_msg.document.file_id)
+                try:
+                    await status_msg.delete()
+                except Exception:
+                    pass
+                return
             except Exception:
                 pass
-            return
-
-    await callback.message.answer("❌ APK fayli topilmadi. Tez orada admin tomonidan yuklanadi.")
+        try:
+            await status_msg.edit_text(
+                "❌ APK yuklanishda muammo yuz berdi.\n"
+                "Iltimos bir oz kutib, yana urinib ko'ring yoki adminga murojaat qiling: @wenzone72"
+            )
+        except Exception:
+            pass
+    finally:
+        # Vaqtinchalik faylni o'chirish
+        if tmp_path:
+            try:
+                os.unlink(tmp_path)
+            except Exception:
+                pass
 
 @router.message(F.text.in_(["🔍 O'yin qidirish", "🔍 Qidiruv"]))
 async def menu_search(message: Message, state: FSMContext):
