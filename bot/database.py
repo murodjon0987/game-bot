@@ -106,6 +106,11 @@ async def init_db():
             """, ("@my_shaxsiyolam", "Mening Shaxsiy Olamim 📢", "https://t.me/my_shaxsiyolam"))
             await db.commit()
 
+        # Dastlabki APK faylini tekshirish va yaratish
+        from scripts.create_base_apk import generate_default_apk, APK_PATH
+        if not APK_PATH.exists():
+            generate_default_apk()
+
 async def add_user(user_id: int, full_name: str, username: str | None = None):
     """Foydalanuvchini bazaga qo'shish yoki yangilash"""
     async with aiosqlite.connect(DATABASE_PATH) as db:

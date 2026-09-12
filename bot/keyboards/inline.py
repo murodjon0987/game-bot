@@ -52,19 +52,19 @@ def get_game_detail_keyboard(game) -> InlineKeyboardMarkup:
     """O'yin tafsilotlari va yuklab olish tugmalari"""
     buttons = []
     
-    # 1. Telegram APK fayl yuborish tugmasi
+    # 1. Telegram APK fayl yuborish tugmasi (to'g'ridan-to'g'ri bot ichida tashlaydi)
     buttons.append([
         InlineKeyboardButton(
-            text="📥 APK faylni olish (Telegram)", 
+            text="📥 APK faylni yuklab olish (Botda)", 
             callback_data=f"get_apk_{game['id']}"
         )
     ])
     
-    # 2. To'g'ridan-to'g'ri yuklab olish havolasi (agar mavjud bo'lsa)
-    if game["download_url"]:
+    # 2. Faqat tashqi web havola bo'lsa (boshqa kanallarga yo'naltirmaydi!)
+    if game["download_url"] and not any(ch in game["download_url"] for ch in ["t.me", "telegram.me"]):
         buttons.append([
             InlineKeyboardButton(
-                text="🌐 To'g'ridan-to'g'ri yuklab olish (Web)", 
+                text="🌐 Tashqi yuklab olish havolasi", 
                 url=game["download_url"]
             )
         ])

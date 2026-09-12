@@ -188,9 +188,8 @@ async def seed_1000_games():
                     f"🛡 Xavfsizlik: Virus Total tekshiruvidan o'tgan, 100% xavfsiz."
                 )
                 
-                # To'g'ridan-to'g'ri tezkor yuklash havolasi (Play Market Silver / Mediafire / Uptodown)
-                clean_slug = tmpl_name.lower().replace(" ", "-").replace("(", "").replace(")", "").replace(":", "")[:30]
-                download_url = f"https://t.me/play_market_silver"
+                # Bot ichida to'g'ridan-to'g'ri APK tashlash uchun
+                download_url = None
                 
                 downloads = 100 + ((i * 37) % 9500)
                 
